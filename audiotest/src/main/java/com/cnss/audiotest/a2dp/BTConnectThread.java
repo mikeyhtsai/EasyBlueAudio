@@ -174,8 +174,9 @@ public class BTConnectThread implements Runnable {
 
                             @Override
                             public void onServiceDisconnected(int profile) {
-
+                            Log.d(BTActivity.LOG_TAG, "A2DP proxy service down" );
                             }
+
 
                             @Override
                             public void onServiceConnected(int profile,

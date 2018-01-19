@@ -1,5 +1,6 @@
 package com.cnss.audiotest.a2dp;
 
+import android.bluetooth.BluetoothA2dp;
 import android.bluetooth.BluetoothAdapter;
 import android.content.BroadcastReceiver;
 import android.content.Context;
@@ -75,6 +76,7 @@ public class BTActivity extends AppCompatActivity {
             Log.d(LOG_TAG, "onRouteSelected: route=" + route);
             Log.d(LOG_TAG, "Selected Device = "+ route.getName());
             mStatusView.setText(route.getName()+"\nSelected");
+            mA2dpDevName = route.getName();
          }
 
         @Override
@@ -145,13 +147,14 @@ public class BTActivity extends AppCompatActivity {
 //            fragment.setRouteSelector(mSelector);
         }
         Log.v(LOG_TAG, LOG_TAG+"Creating main activity, start btThread");
-        BTConnectThread bt = new BTConnectThread(this, false);
-        Thread btThread = new Thread(bt);
-        btThread.start();
-        updateConnectionStatus();
+        updateConnectionStatus(false);
         IntentFilter filter = new IntentFilter();
         filter.addAction(Intent.ACTION_BOOT_COMPLETED);
         filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_CONNECTION_STATE_CHANGED);
+        filter.addAction(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED);
+
+
         mReceiver = new BtReceiver();
         if (!mRegisteredReceiver) {
             try {
@@ -165,8 +168,19 @@ public class BTActivity extends AppCompatActivity {
         mBroadcastReceiver = new BroadcastReceiver() {
             @Override
             public void onReceive(Context context, Intent intent) {
-                Log.d(LOG_TAG, "Received event from local broadcast ");
-              //  updateConnectionStatus();
+                Log.d(LOG_TAG, "Received event from local broadcast " + intent.getAction());
+                updateConnectionStatus(false);
+                String action = intent.getAction();
+                if (action.equals(BluetoothA2dp.ACTION_PLAYING_STATE_CHANGED)) {
+                    int state = intent.getIntExtra(BluetoothA2dp.EXTRA_STATE, BluetoothA2dp.STATE_NOT_PLAYING);
+                    if (state == BluetoothA2dp.STATE_PLAYING) {
+                        mStatusView.setText(mA2dpDevName + "\nStreaming");
+                    }
+                     else {
+                        mStatusView.setText(mA2dpDevName + "\nStopped");
+                    }
+
+                }
             }
         };
 
@@ -175,9 +189,9 @@ public class BTActivity extends AppCompatActivity {
 
     }
 
-    public void updateConnectionStatus(){
+    public void updateConnectionStatus(boolean inited){
 
-        BTConnectThread bt2 = new BTConnectThread(this, true);
+        BTConnectThread bt2 = new BTConnectThread(this, inited);
         Thread btThread2 = new Thread(bt2);
         btThread2.start();
     }
@@ -264,7 +278,7 @@ public class BTActivity extends AppCompatActivity {
         BTConnectThread obj=new BTConnectThread(this,false);
         Thread btThread = new Thread(obj);
         btThread.start();
-        updateConnectionStatus();
+        updateConnectionStatus(true);
     }
 
     public void onPlayButtonClick(View v) {

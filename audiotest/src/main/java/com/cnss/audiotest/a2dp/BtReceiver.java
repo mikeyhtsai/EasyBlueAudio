@@ -22,7 +22,7 @@ public class BtReceiver extends BroadcastReceiver {
         String action = intent.getAction();
         mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         ContentResolver cr = context.getContentResolver();
-
+        Log.d(TAG, "Receive Intent - Action" + action);
         if (action.equals(Intent.ACTION_BOOT_COMPLETED)) {
             Log.d(TAG, "Received ACTION_BOOT_COMPLETED");
             if (mBluetoothAdapter != null) {
@@ -46,10 +46,9 @@ public class BtReceiver extends BroadcastReceiver {
                 Log.d(TAG, "BT State changed to ON");
             }
 
-            LocalBroadcastManager mgr = LocalBroadcastManager.getInstance(context);
-            mgr.sendBroadcast(intent);
-
         }
+        LocalBroadcastManager mgr = LocalBroadcastManager.getInstance(context);
+        mgr.sendBroadcast(intent);
 
     }
 }
