@@ -57,7 +57,7 @@ public class BTConnectThread implements Runnable {
 
                 try {
                     currentConnectionStatus();
-
+/*
                     if((mA2dp != null) && (connectedA2dpDevices != null) ) {
                        boolean a2dp_playing = mA2dp.isA2dpPlaying(connectedA2dpDevices);
                        if (a2dp_playing)
@@ -65,7 +65,7 @@ public class BTConnectThread implements Runnable {
                            else
                               updateA2dpStatus(connectedA2dpDevices.getName()+"\nIdle");
                     }
-                    
+*/
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 } catch (NoSuchMethodException e) {
@@ -88,7 +88,7 @@ public class BTConnectThread implements Runnable {
                                 if (priorityName.equals(connectedDev.getName())) {
                                         connectedDeviceName = priorityName+" is Connected";
                                         updateConnectionStatus(connectedDeviceName);
-                                        //return;
+                                        return;
                                 }
                             }
                         }
@@ -212,14 +212,16 @@ public class BTConnectThread implements Runnable {
 
     /////////////////////////////
     public void currentConnectionStatus() throws InterruptedException, NoSuchMethodException, InvocationTargetException, IllegalAccessException {
-        connectedDevices=null;
+     //   connectedDevices=null;
         BluetoothAdapter mBluetoothAdapter = BluetoothAdapter.getDefaultAdapter();
         mBluetoothAdapter.getProfileProxy(appContext,
                 new BluetoothProfile.ServiceListener() {
 
                     @Override
                     public void onServiceDisconnected(int profile) {
+
                         mBluetoothA2dp = null;
+                        connectedDevices = null;
                     }
 
                     @Override

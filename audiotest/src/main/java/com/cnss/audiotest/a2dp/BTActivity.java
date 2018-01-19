@@ -1,13 +1,17 @@
 package com.cnss.audiotest.a2dp;
 
 import android.bluetooth.BluetoothAdapter;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.media.AudioManager;
 import android.media.AudioManager.OnAudioFocusChangeListener;
 import android.media.MediaPlayer;
 import android.media.MediaRouter;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
+import android.support.v4.content.LocalBroadcastManager;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.app.MediaRouteDiscoveryFragment;
 import android.support.v7.media.MediaRouteSelector;
@@ -27,6 +31,9 @@ public class BTActivity extends AppCompatActivity {
     public static final String LOG_TAG = "EasyBt";
     private MediaRouteSelector mSelector;
     private String mA2dpDevName=null;
+    private BtReceiver mReceiver=null;
+    private boolean mRegisteredReceiver = false;
+    private BroadcastReceiver mBroadcastReceiver;
 
     private static final String DISCOVERY_FRAGMENT_TAG = "DiscoveryFragment";
 
@@ -68,7 +75,7 @@ public class BTActivity extends AppCompatActivity {
             Log.d(LOG_TAG, "onRouteSelected: route=" + route);
             Log.d(LOG_TAG, "Selected Device = "+ route.getName());
             mStatusView.setText(route.getName()+"\nSelected");
-        }
+         }
 
         @Override
         public void onRouteUnselected(android.support.v7.media.MediaRouter router, android.support.v7.media.MediaRouter.RouteInfo route) {
@@ -142,6 +149,30 @@ public class BTActivity extends AppCompatActivity {
         Thread btThread = new Thread(bt);
         btThread.start();
         updateConnectionStatus();
+        IntentFilter filter = new IntentFilter();
+        filter.addAction(Intent.ACTION_BOOT_COMPLETED);
+        filter.addAction(BluetoothAdapter.ACTION_STATE_CHANGED);
+        mReceiver = new BtReceiver();
+        if (!mRegisteredReceiver) {
+            try {
+                registerReceiver(mReceiver, filter);
+                mRegisteredReceiver = true;
+            } catch (Exception e) {
+                Log.e(LOG_TAG, "Unable to register BT_event receiver", e);
+            }
+        }
+
+        mBroadcastReceiver = new BroadcastReceiver() {
+            @Override
+            public void onReceive(Context context, Intent intent) {
+                Log.d(LOG_TAG, "Received event from local broadcast ");
+              //  updateConnectionStatus();
+            }
+        };
+
+        LocalBroadcastManager mgr = LocalBroadcastManager.getInstance(this);
+        mgr.registerReceiver(mBroadcastReceiver, new IntentFilter(filter));
+
     }
 
     public void updateConnectionStatus(){
@@ -207,7 +238,27 @@ public class BTActivity extends AppCompatActivity {
         startActivity(intent);
     }
 
+    @Override
+    protected void onStart() {
+        super.onStart();
 
+    }
+
+    @Override
+    protected void onStop() {
+        super.onStop();
+        unregisterReceiver(mReceiver);
+        LocalBroadcastManager mgr = LocalBroadcastManager.getInstance(this);
+        mgr.unregisterReceiver(mBroadcastReceiver);
+    }
+
+    @Override
+    protected void onDestroy() {
+        super.onDestroy();
+        unregisterReceiver(mReceiver);
+        LocalBroadcastManager mgr = LocalBroadcastManager.getInstance(this);
+        mgr.unregisterReceiver(mBroadcastReceiver);
+    }
 
     public void onFAButtonClick(View v) throws InterruptedException {
         BTConnectThread obj=new BTConnectThread(this,false);
