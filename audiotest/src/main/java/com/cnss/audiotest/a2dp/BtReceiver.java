@@ -47,6 +47,9 @@ public class BtReceiver extends BroadcastReceiver {
             }
 
         }
+        /* as we need to update activity GUI, so we send the intent back via localbroadcastmanager
+
+         */
         LocalBroadcastManager mgr = LocalBroadcastManager.getInstance(context);
         mgr.sendBroadcast(intent);
 
